@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+	<html>
+	  <head>
+		<meta charset=" UTF-8">
+	   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	   <title>Signature SDK - Simple demo</title>
+	   <link rel="stylesheet" href="../common/stu_capture/stu_capture.css">
+	   <link rel="stylesheet" href="../common/canvas_capture.css">
+	   <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3pro.css">
+	   <link rel="preconnect" href="https://fonts.gstatic.com">
+	   <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+	   <script src="../common/will/libs/clipper.js"></script>
+	   <script src="../common/will/libs/md5.min.js"></script>
+	   <script src="../common/will/libs/poly2tri.min.js"></script>
+	   <script src="../common/will/libs/long.js"></script>
+	   <script src="../common/will/libs/protobuf.min.js"></script>
+	   <script src="../common/will/libs/wacom-digital-ink-min.js"></script>
+	   <script type="text/javascript">
+		  const {
+			 fsx,
+			 Matrix,
+			 InputDevice,
+			 InputListener,
+			 SensorChannel,
+			 InkController,
+			 Brush2D,
+			 BrushPrototype,
+			 ShapeFactory,
+			 BrushGL,
+			 URIResolver,
+			 Intersector,
+			 Selector,
+			 PathPointContext,
+			 InkBuilder,
+			 Stroke,
+			 InkModel,
+			 SpatialContext,
+			 InkCodec,
+			 Color,
+			 Rect,
+			 BlendMode,
+			 InkCanvas2D,
+			 StrokeRenderer2D,
+			 InkCanvasGL,
+			 StrokeRendererGL,
+			 OffscreenCanvasGL,
+			 PointerData
+		  } = DigitalInk;
+	   </script>
+	   <script src="../common/will/InkCanvas.js"></script>
+	   <script src="../common/will/InkCanvasRaster.js"></script>
+	   <script src="../common/will/ValueTransformer.js"></script>
+	   <script src="../common/will/URIBuilder.js"></script>
+	   <script src="../common/will/BrushPalette.js"></script>
+	   <script src="../common/will/Config.js"></script>
+	   <script src="../common/will/DataRepository.js"></script>
+	   <script src="../common/will/DataModel.js"></script>
+	
+	   <script src="../common/stu_capture/stu-sdk.min.js"></script> <!-- used to connect to STU devices -->
+	   <script src="../common/signature_sdk.js"></script> <!-- signature SDK -->
+	   <script src="../common/stu_capture/stu_capture.js"></script> <!-- used for capture data from STU devices -->
+	   <script src="../common/stu_capture/stu_capture_encryption.js"></script> <!-- STU encryption functions -->
+	   <script src="../common/stu_capture/BigInt.js"></script>
+	   <script src="../common/stu_capture/md5.min.js"></script>
+	   <script src="../common/stu_capture/sjcl.js"></script>
+	
+	   <script src="../common/canvas_capture.js"></script>
+	   <script src="simple.js"></script>
+
+<style>
+		.topnav {
+         overflow: hidden;
+		 background-color: #333;
+         position: relative;
+       }
+       
+       .topnav #myLinks {
+         display: none;
+       }
+       
+       .topnav a {
+         color: white;
+         padding: 14px 16px;
+         text-decoration: none;
+         font-size: 17px;
+         display: block;
+       }
+       
+       .topnav a.icon {
+         background: black;
+         display: block;
+         position: absolute;
+         right: 0;
+         top: 0;
+       }
+       
+       .topnav a:hover {
+         background-color: #ddd;
+         color: black;
+       }
+       
+       .active {
+		background-color: #04AA6D;
+		color: white;
+        }
+
+  	   li {list-style: none;}
+
+		textarea#sigbase64 {
+			height: 12vh;
+			width: 95vw;
+			border: 3px solid #cccccc;
+			padding: 5px;
+			font-family: Tahoma, sans-serif;
+		}
+
+	.button {
+		border:none;
+		display:inline-block;
+		padding:4px 8px;
+		border-radius: 5px;
+		vertical-align:middle;
+		overflow:hidden;
+		text-decoration:none;
+		color: rgb(240, 240, 240);
+		background-color:#4CAF50;
+		font-size: 1rem;
+		text-align:center;
+		cursor:pointer;
+		white-space:nowrap;
+	}
+	.button:hover {
+	   box-shadow:0 8px 16px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19)
+	}
+	.horizontal-align {
+	  display: inline-block;
+	  vertical-align: middle;
+	  width: 730px;
+	  padding: 5px 5px;
+	  font-size: 1.1rem;
+	}
+</style>
+	   </head>
+	   <body>
+		  <!-- <li style="display:none;">  will hide element opposite is  display:block;  -->
+			<div class="w3-container w3-card" id="top">
+				<div class="topnav">
+					<a href="#top" class="active">Signature SDK Demo</a>
+					<div id="myLinks">
+					  <a href="#top">Top</a>
+					  <a href="#signstart">Mid</a>
+					  <a href="#endpage">Go Lower</a>
+					</div>
+					<a href="javascript:void(0);" class="icon" onclick="myFunction()">
+					  M
+					</a>
+				 </div>
+			</div>		
+		  <div class="w3-container>
+			  <div class= "w3-cell-row">
+				<h4>Pure JavaScript: Web Assembly</h4>
+		  		     <!--  <p><a href=" https://caniuse.com/?search=webassembly" target="blank">click here</a></p>   -->
+				</div>
+			 <div class="xcontent">
+				<ul>
+					<div id="loadsignature" >
+				       <li>
+					     Load previously captured Signature<br> (.FSS file or BASE64txt)
+					     <br><br><input type="file" id="myfile" name="myfile" onchange="javascript:loadFromFile();"><br><br><br>
+				       </li>
+				   </div>
+				   <div id="signsignature">   
+				      <li>
+					     Signature Capture
+				      </li>
+				      <li>
+	
+					  <div class="w3-container" id="signstart">
+					    	 <span>
+					    		<label for="whosign">Who : </label>
+					    		<input type="text" id="whosign" placeholder="Your name.."><br></span>
+	    
+					    	 <span>
+					    		<label for="whysign">Why : </label>
+					    		<input type="text" id="whysign" placeholder="Reason for signing.."><br>
+					    	 </span>
+	    
+						     <span>
+					    		<label for="wheresign">Where:</label>
+					    		<input type="text" id="wheresign" placeholder="Signing Location.."> <br>
+					    	 </span>
+					  </div> 
+				      </li>
+					</div>
+				   <li>
+					  <div class="horizontal-align">
+						 <!-- <div class="three-items">  -->
+						 <div class="item1" style="line-height: 5vh;">
+							<input type="radio" name="Xsignee" id="customer"> Customer&nbsp;&nbsp;&nbsp;&nbsp;
+							<input type="radio" name="Xsignee" id="officer"> Officer
+						 </div>
+						 <div class="item3">
+							<button class="button" ; id="capture_stu_device4" onClick="captureFromCanvas(mSigObj)">Sig Cap. with Generic Pen</button><br>
+						 </div>
+						 <!--  </div>   -->
+					  </div>
+				   </li>
+				</ul>
+				<div class="w3-cell-row" id="endpage">
+					<div class="w3-cell" style="width:70%">	
+				   <fieldset id="signature_image" style="width:auto;height:40vw;display: block;justify-content: center;align-items: center;">
+					  <legend>Customer:</legend>
+					  <img id="sig_image" style="display:block;margin: auto;">
+				   </fieldset>
+				   </div>
+				</div>
+				<div><a href="#top">Top</a></div>
+				<div class="w3-cell-row">   
+				   <div class="w3-cell"  style="width:70%">
+				   <fieldset id="signature_image2" style="width:auto;height:40vw;display: block;justify-content: center;align-items: center;">
+					  <legend>Officer:</legend>
+					  <img id="sig_image2" style="display:block;margin: auto;">
+				   </fieldset>
+				   </div>
+				</div>
+				
+				<div>
+				    <br>Base64 text: copy & can be paste to Miniscope<br>
+				    <button class="button" ; onclick="copyToClipboard()">Copy</button>
+					<br><br><textarea id="sigbase64" onfocus="setbg('#e5fff3');" onblur="setbg('white')"></textarea>
+	
+				</div>
+			 </div>
+			 <script>
+				function setbg(color) {
+				   document.getElementById("sigbase64").style.background = color;
+				};
+	
+				function copyToClipboard() {
+				   /* Get the text field */
+				   var copyText = document.getElementById("sigbase64");
+	
+				   /* Select the text field */
+				   copyText.select();
+				   copyText.setSelectionRange(0, 99999); /* For mobile devices */
+	
+				   /* Copy the text inside the text field */
+				   document.execCommand("copy");
+	
+				   /* Alert the copied text */
+				   alert("Copied");
+				}
+	
+				var something = (function() {
+				   var executed = false;
+				   return function() {
+					  if (!executed) {
+						 executed = true;
+						 document.getElementById("customer").checked = true;
+					  }
+				   };
+				})();
+			 </script>
+			 <script>
+				function myFunction() {
+				  var x = document.getElementById("myLinks");
+				  if (x.style.display === "block") {
+					x.style.display = "none";
+				  } else {
+					x.style.display = "block";
+				  }
+				}
+				</script>
+	
+		  </div>
+	   </body>
+	
+	   </html>
